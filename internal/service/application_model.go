@@ -405,6 +405,38 @@ func (m ApplicationModel) Schema(ctx context.Context) schema.Schema {
 	}
 }
 
+// conditionalDockerComposeRaw returns docker_compose_raw only when source_type
+// is "dockercompose". For other source types Coolify rejects the field on
+// update with 422 even though GET returns its value.
+func conditionalDockerComposeRaw(sourceType types.String, raw types.String) *string {
+	if ApplicationSourceType(sourceType.ValueString()) != ApplicationSourceTypeDockercompose {
+		return nil
+	}
+	return expand.StringOrNil(raw)
+}
+
+// preserveCustomLabels returns stateVal if it is semantically equal to apiVal
+// (Coolify normalizes labels server-side: base64↔plaintext re-encoding +
+// letsencrypt certresolver injection). Otherwise returns apiVal (genuine
+// change, e.g. user edited labels in Coolify UI).
+//
+// Used by FromAPI so that:
+//   - Post-Update reconciliation: state matches plan (consistency check passes)
+//   - Read refresh on Coolify mutation: state stays semantically stable
+//   - Read refresh on real change: state reflects new value, plan shows diff
+func preserveCustomLabels(stateVal types.String, apiVal types.String) types.String {
+	if stateVal.IsNull() || stateVal.IsUnknown() {
+		return apiVal
+	}
+	if apiVal.IsNull() || apiVal.IsUnknown() {
+		return stateVal
+	}
+	if semanticEqual(stateVal.ValueString(), apiVal.ValueString()) {
+		return stateVal
+	}
+	return apiVal
+}
+
 func preserveGitRepository(stateVal types.String, apiVal types.String) types.String {
 	if stateVal.IsNull() || stateVal.IsUnknown() {
 		return apiVal
@@ -475,7 +507,7 @@ func (m ApplicationModel) FromAPI(app *api.Application, state ApplicationModel) 
 		LimitsCpus:                     flatten.String(app.LimitsCpus),
 		LimitsCpuset:                   flatten.String(app.LimitsCpuset),
 		LimitsCpuShares:                flatten.Int64(app.LimitsCpuShares),
-		CustomLabels:                   flatten.String(app.CustomLabels),
+		CustomLabels:                   preserveCustomLabels(state.CustomLabels, flatten.String(app.CustomLabels)),
 		CustomDockerRunOptions:         flatten.String(app.CustomDockerRunOptions),
 		PostDeploymentCommand:          flatten.String(app.PostDeploymentCommand),
 		PostDeploymentCommandContainer: flatten.String(app.PostDeploymentCommandContainer),
@@ -981,7 +1013,13 @@ func (m ApplicationModel) ToAPIUpdate() api.UpdateApplicationByUuidJSONRequestBo
 		InstantDeploy:                  expand.Bool(m.InstantDeploy),
 		Dockerfile:                     expand.StringOrNil(m.Dockerfile),
 		DockerComposeLocation:          expand.StringOrNil(m.DockerComposeLocation),
-		DockerComposeRaw:               expand.StringOrNil(m.DockerComposeRaw),
+		// docker_compose_raw is the literal compose YAML content. Coolify v4
+		// only accepts it when source_type=dockercompose (raw compose source).
+		// For source_type=private-github-app with build_pack=dockercompose,
+		// Coolify reads the YAML from git at docker_compose_location and
+		// rejects docker_compose_raw on Update with 422 "This field is not
+		// allowed", even though GET returns the value.
+		DockerComposeRaw:                conditionalDockerComposeRaw(m.SourceType, m.DockerComposeRaw),
 		DockerComposeCustomStartCommand: expand.StringOrNil(m.DockerComposeCustomStartCommand),
 		DockerComposeCustomBuildCommand: expand.StringOrNil(m.DockerComposeCustomBuildCommand),
 		DockerComposeDomains:           nil,
