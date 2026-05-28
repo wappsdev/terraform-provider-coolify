@@ -305,6 +305,15 @@ func (r *applicationResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// Force CustomLabels in the post-apply state to match the plan, ignoring
+	// Coolify's server-side label normalization (LE certresolver injection,
+	// redirect-to-https middleware addition, base64↔plaintext re-encoding).
+	// Without this override Terraform's "produced inconsistent result after
+	// apply" consistency check fails when Coolify's mutation is not exactly
+	// representable by our semantic-equality plan modifier. The next Read
+	// refresh will reconcile state if any non-mutation change is detected.
+	data.CustomLabels = plan.CustomLabels
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

@@ -4,6 +4,20 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.1.3 (2026-05-28)
+
+### Fixed
+- **Update flow: force `custom_labels` to plan value in post-apply state.**
+  Even with the v1.1.0 semantic-equality modifier + v1.1.2 `preserveCustomLabels`
+  helper, Coolify v4 adds runtime-context lines beyond `tls.certresolver`
+  (e.g. `traefik.http.routers.<name>.middlewares=redirect-to-https` on HTTPS
+  apps). These rules are too varied to enumerate in the normalize filter, and
+  attempting to does not survive future Coolify changes. Update now overrides
+  `data.CustomLabels = plan.CustomLabels` after `ReadFromAPI`, so Terraform's
+  consistency check passes regardless of Coolify mutation. The Read path
+  still uses `preserveCustomLabels` (semantic equality OR explicit user
+  change via Coolify UI both flow through normally).
+
 ## v1.1.2 (2026-05-28)
 
 ### Fixed
