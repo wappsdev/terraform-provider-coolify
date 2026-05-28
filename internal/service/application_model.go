@@ -163,7 +163,7 @@ func (m ApplicationModel) Schema(ctx context.Context) schema.Schema {
 				Computed:    true,
 				Description: "Description of the application.",
 				PlanModifiers: []planmodifier.String{
-					UseStateForUnknownUnlessNullString(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"domains": schema.StringAttribute{
