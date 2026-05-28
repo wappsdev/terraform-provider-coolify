@@ -4,6 +4,26 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.1.2 (2026-05-28)
+
+### Fixed
+- **`docker_compose_raw` rejected on Update for non-dockercompose source types.**
+  Coolify v4 GET returns `docker_compose_raw` content for any app whose
+  `build_pack=dockercompose`, but Update PATCH rejects it with 422 unless
+  `source_type=dockercompose`. New helper `conditionalDockerComposeRaw` omits
+  the field from the payload for all other source types. Unblocks adoption of
+  `private-github-app` apps that use `build_pack=dockercompose` (the YAML
+  comes from `docker_compose_location` in the git repo, not raw content).
+- **`custom_labels` "produced inconsistent result after apply" error.**
+  After Update, Coolify returns server-mutated labels (base64↔plaintext +
+  letsencrypt certresolver injection). The provider previously stored these
+  in the post-apply state, but Terraform's consistency check compares state
+  to plan and raises a hard error on any difference. New helper
+  `preserveCustomLabels` keeps the plan value in state if the API value is
+  semantically equal (via the v1.1.0 modifier's normalize logic). Genuine
+  user changes via Coolify UI still flow through (semantic-different →
+  state updated → next plan shows diff).
+
 ## v1.1.1 (2026-05-28)
 
 ### Fixed
