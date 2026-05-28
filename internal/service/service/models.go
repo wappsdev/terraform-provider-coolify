@@ -47,6 +47,9 @@ func (m ServiceModel) Schema(ctx context.Context) schema.Schema {
 				Optional:    true,
 				Computed:    true,
 				Description: "Description of the service.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"destination_uuid": schema.StringAttribute{
 				Optional:    true,

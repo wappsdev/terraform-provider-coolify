@@ -1,10 +1,13 @@
 package service_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
+	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -12,7 +15,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 
 	"terraform-provider-coolify/internal/acctest"
+	service "terraform-provider-coolify/internal/service/service"
 )
+
+func TestServiceResourceSchema_descriptionHasPlanModifier(t *testing.T) {
+	ctx := context.Background()
+	rs := service.NewServiceResource()
+
+	req := tfresource.SchemaRequest{}
+	resp := &tfresource.SchemaResponse{}
+	rs.Schema(ctx, req, resp)
+
+	attr, ok := resp.Schema.Attributes["description"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("description attribute missing or wrong type")
+	}
+	if len(attr.PlanModifiers) == 0 {
+		t.Error("description should have a PlanModifier (UseStateForUnknown) to prevent drift on Optional+Computed")
+	}
+}
 
 func TestAccServiceResource(t *testing.T) {
 	resName := "coolify_service.test"
