@@ -35,6 +35,26 @@ func TestServiceResourceSchema_descriptionHasPlanModifier(t *testing.T) {
 	}
 }
 
+func TestServiceResourceSchema_destinationUuidNoStaticDefault(t *testing.T) {
+	ctx := context.Background()
+	rs := service.NewServiceResource()
+
+	req := tfresource.SchemaRequest{}
+	resp := &tfresource.SchemaResponse{}
+	rs.Schema(ctx, req, resp)
+
+	attr, ok := resp.Schema.Attributes["destination_uuid"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("destination_uuid attribute missing or wrong type")
+	}
+	if attr.Default != nil {
+		t.Error("destination_uuid should not have a static Default (causes empty-string drift); use UseStateForUnknown modifier instead")
+	}
+	if len(attr.PlanModifiers) == 0 {
+		t.Error("destination_uuid should have a UseStateForUnknown PlanModifier")
+	}
+}
+
 func TestServiceResourceSchema_nameHasPlanModifier(t *testing.T) {
 	ctx := context.Background()
 	rs := service.NewServiceResource()
