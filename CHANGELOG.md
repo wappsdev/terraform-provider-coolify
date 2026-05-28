@@ -4,6 +4,30 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.0 (2026-05-29)
+
+### Added
+- `coolify_service` resource: `connect_to_docker_network` field exposed
+  (Coolify Update API accepts it; previously absent from schema).
+- `ValidateCreatePlan` helper: enforces that `compose` is non-empty AND at
+  least one of `environment_name`/`environment_uuid` is set. Catches
+  Coolify 422 client-side with a clear attribute-level error.
+
+### Changed
+- `coolify_service`: applied Spec 2 plan modifier lessons (v1.1.6 cohort).
+  `description`, `name`, `destination_uuid`, `environment_uuid` now use
+  `stringplanmodifier.UseStateForUnknown()` to prevent perpetual drift on
+  Optional+Computed fields. `destination_uuid` Default `""` removed (was
+  injecting empty string into state).
+- `coolify_service`: `environment_uuid` is now Computed (Coolify Read
+  returns it).
+
+### Breaking changes
+- `coolify_service` Import format changed from
+  `<server_uuid>/<project_uuid>/<environment_name>/<service_uuid>` to
+  single UUID (`<service_uuid>`), consistent with `coolify_application`.
+  No known production consumers at the time of this release.
+
 ## v1.1.6 (2026-05-28)
 
 ### Fixed

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -48,6 +47,11 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 	var plan ServiceResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(ValidateCreatePlan(plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -185,21 +189,40 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *ServiceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	ids := strings.Split(req.ID, "/")
-	if len(ids) != 4 {
-		resp.Diagnostics.AddError(
-			"Invalid import ID",
-			"Import ID should be in the format: <server_uuid>/<project_uuid>/<environment_name>/<service_uuid>",
+	// Single-UUID import — consistent with coolify_application.
+	// The user supplies the service UUID. project_uuid, server_uuid,
+	// environment_name, etc. are populated by the user's HCL config
+	// (they are required HCL fields anyway and Coolify Read does not
+	// reliably return them as UUIDs).
+	resource.ImportStatePassthroughID(ctx, path.Root("uuid"), req, resp)
+}
+
+// ValidateCreatePlan checks that the create-time HCL meets Coolify's
+// minimum requirements: compose is non-empty + at least one of
+// environment_name/environment_uuid is set. Catches Coolify 422 cases
+// client-side with a clear attribute-level error.
+func ValidateCreatePlan(plan ServiceResourceModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if plan.Compose.IsNull() || plan.Compose.IsUnknown() || plan.Compose.ValueString() == "" {
+		diags.AddAttributeError(
+			path.Root("compose"),
+			"Missing required field",
+			"compose is required (raw docker-compose YAML content)",
 		)
-		return
 	}
 
-	serverUuid, projectUuid, environmentName, uuid := ids[0], ids[1], ids[2], ids[3]
+	envName := plan.EnvironmentName.ValueString()
+	envUuid := plan.EnvironmentUuid.ValueString()
+	if envName == "" && envUuid == "" {
+		diags.AddAttributeError(
+			path.Root("environment_name"),
+			"Missing environment identifier",
+			"At least one of environment_name or environment_uuid is required",
+		)
+	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("server_uuid"), serverUuid)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_uuid"), projectUuid)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment_name"), environmentName)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("uuid"), uuid)...)
+	return diags
 }
 
 // MARK: Helper functions
