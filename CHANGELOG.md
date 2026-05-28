@@ -4,6 +4,15 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.1.6 (2026-05-28)
+
+### Fixed
+- **`description` modifier upgrade.** v1.1.5 added `UseStateForUnknownUnlessNullString`
+  but its existing `!PlanValue.IsNull()` early-return is wrong for Optional+Computed
+  fields where PlanValue starts as Unknown (not null). Replaced with the standard
+  `stringplanmodifier.UseStateForUnknown()` from the framework, which properly
+  preserves state when plan is Unknown. Already used by `git_commit_sha` etc.
+
 ## v1.1.5 (2026-05-28)
 
 ### Fixed
