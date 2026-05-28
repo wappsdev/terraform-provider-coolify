@@ -3009,10 +3009,16 @@ type UpdateServiceByUuidJSONBody struct {
 	DockerComposeRaw string `json:"docker_compose_raw"`
 
 	// EnvironmentName The environment name.
-	EnvironmentName string `json:"environment_name"`
+	//
+	// NOTE (wappsdev fork): made optional pointer + omitempty. Coolify v4
+	// rejects environment_name/environment_uuid/project_uuid/server_uuid on
+	// service update with 422 "This field is not allowed" — they are
+	// create-only, same as coolify_application (see v1.0.1). Omitting via nil
+	// pointer keeps the field out of the JSON payload entirely.
+	EnvironmentName *string `json:"environment_name,omitempty"`
 
 	// EnvironmentUuid The environment UUID.
-	EnvironmentUuid string `json:"environment_uuid"`
+	EnvironmentUuid *string `json:"environment_uuid,omitempty"`
 
 	// InstantDeploy The flag to indicate if the service should be deployed instantly.
 	InstantDeploy *bool `json:"instant_deploy,omitempty"`
@@ -3021,10 +3027,10 @@ type UpdateServiceByUuidJSONBody struct {
 	Name *string `json:"name,omitempty"`
 
 	// ProjectUuid The project UUID.
-	ProjectUuid string `json:"project_uuid"`
+	ProjectUuid *string `json:"project_uuid,omitempty"`
 
 	// ServerUuid The server UUID.
-	ServerUuid string `json:"server_uuid"`
+	ServerUuid *string `json:"server_uuid,omitempty"`
 }
 
 // UpdateEnvByServiceUuidJSONBody defines parameters for UpdateEnvByServiceUuid.
