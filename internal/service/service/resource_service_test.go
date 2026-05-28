@@ -8,6 +8,7 @@ import (
 
 	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -17,6 +18,59 @@ import (
 	"terraform-provider-coolify/internal/acctest"
 	service "terraform-provider-coolify/internal/service/service"
 )
+
+func TestServiceValidateCreatePlan_okEnvNameOnly(t *testing.T) {
+	plan := service.ServiceModel{
+		EnvironmentName: types.StringValue("production"),
+		Compose:         types.StringValue("services:\n  app:\n    image: nginx"),
+	}
+	diags := service.ValidateCreatePlan(plan)
+	if diags.HasError() {
+		t.Errorf("expected no error, got: %s", diags.Errors())
+	}
+}
+
+func TestServiceValidateCreatePlan_okEnvUuidOnly(t *testing.T) {
+	plan := service.ServiceModel{
+		EnvironmentUuid: types.StringValue("envuuid123"),
+		Compose:         types.StringValue("services:\n  app:\n    image: nginx"),
+	}
+	diags := service.ValidateCreatePlan(plan)
+	if diags.HasError() {
+		t.Errorf("expected no error, got: %s", diags.Errors())
+	}
+}
+
+func TestServiceValidateCreatePlan_failsEnvNeither(t *testing.T) {
+	plan := service.ServiceModel{
+		Compose: types.StringValue("services:\n  app:\n    image: nginx"),
+	}
+	diags := service.ValidateCreatePlan(plan)
+	if !diags.HasError() {
+		t.Error("expected error for missing env_name and env_uuid")
+	}
+}
+
+func TestServiceValidateCreatePlan_failsComposeEmpty(t *testing.T) {
+	plan := service.ServiceModel{
+		EnvironmentName: types.StringValue("production"),
+		Compose:         types.StringValue(""),
+	}
+	diags := service.ValidateCreatePlan(plan)
+	if !diags.HasError() {
+		t.Error("expected error for empty compose")
+	}
+}
+
+func TestServiceValidateCreatePlan_failsComposeNull(t *testing.T) {
+	plan := service.ServiceModel{
+		EnvironmentName: types.StringValue("production"),
+	}
+	diags := service.ValidateCreatePlan(plan)
+	if !diags.HasError() {
+		t.Error("expected error for null compose")
+	}
+}
 
 func TestServiceResourceSchema_descriptionHasPlanModifier(t *testing.T) {
 	ctx := context.Background()

@@ -52,6 +52,11 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
+	resp.Diagnostics.Append(ValidateCreatePlan(plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, "Creating service", map[string]interface{}{
 		"name": plan.Name.ValueString(),
 	})
@@ -200,6 +205,34 @@ func (r *ServiceResource) ImportState(ctx context.Context, req resource.ImportSt
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_uuid"), projectUuid)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment_name"), environmentName)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("uuid"), uuid)...)
+}
+
+// ValidateCreatePlan checks that the create-time HCL meets Coolify's
+// minimum requirements: compose is non-empty + at least one of
+// environment_name/environment_uuid is set. Catches Coolify 422 cases
+// client-side with a clear attribute-level error.
+func ValidateCreatePlan(plan ServiceResourceModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if plan.Compose.IsNull() || plan.Compose.IsUnknown() || plan.Compose.ValueString() == "" {
+		diags.AddAttributeError(
+			path.Root("compose"),
+			"Missing required field",
+			"compose is required (raw docker-compose YAML content)",
+		)
+	}
+
+	envName := plan.EnvironmentName.ValueString()
+	envUuid := plan.EnvironmentUuid.ValueString()
+	if envName == "" && envUuid == "" {
+		diags.AddAttributeError(
+			path.Root("environment_name"),
+			"Missing environment identifier",
+			"At least one of environment_name or environment_uuid is required",
+		)
+	}
+
+	return diags
 }
 
 // MARK: Helper functions
