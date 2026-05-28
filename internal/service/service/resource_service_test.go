@@ -35,6 +35,23 @@ func TestServiceResourceSchema_descriptionHasPlanModifier(t *testing.T) {
 	}
 }
 
+func TestServiceResourceSchema_nameHasPlanModifier(t *testing.T) {
+	ctx := context.Background()
+	rs := service.NewServiceResource()
+
+	req := tfresource.SchemaRequest{}
+	resp := &tfresource.SchemaResponse{}
+	rs.Schema(ctx, req, resp)
+
+	attr, ok := resp.Schema.Attributes["name"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("name attribute missing or wrong type")
+	}
+	if len(attr.PlanModifiers) == 0 {
+		t.Error("name should have a PlanModifier (UseStateForUnknown) to prevent drift on Optional+Computed")
+	}
+}
+
 func TestAccServiceResource(t *testing.T) {
 	resName := "coolify_service.test"
 	resource.Test(t, resource.TestCase{
