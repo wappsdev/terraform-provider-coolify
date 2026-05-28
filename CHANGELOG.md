@@ -4,6 +4,27 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.1.1 (2026-05-28)
+
+### Fixed
+- `ToAPIUpdate` now uses `expand.StringOrNil` for all string fields instead of
+  `expand.String`. Coolify v4's GET endpoint returns empty strings (`""`) for
+  source-type-incompatible fields (e.g., `docker_compose_raw=""` on a
+  `private-github-app` + dockerfile app). The provider previously preserved
+  these empty strings in state and sent them back on Update, triggering
+  Coolify validation errors like `{"docker_compose_raw":["This field is not
+  allowed."]}` (Laravel rejects the field even with `omitempty` on the JSON
+  tag — `omitempty` only skips nil pointers, not pointer-to-empty-string).
+  StringOrNil collapses `""` → nil, letting omitempty drop the field from
+  the payload. Unblocks Tofu adoption of all source-type variants.
+
+### Behavior change
+- HCL `field = ""` (empty string) is now equivalent to `field = null` on
+  update — the field is omitted from the API payload, preserving Coolify's
+  current value. To explicitly clear a value on Coolify, omit the attribute
+  from HCL or set it to `null`. Empty-string-as-clear is no longer supported
+  (it never worked correctly anyway due to the above bug).
+
 ## v1.1.0 (2026-05-28)
 
 ### Added
