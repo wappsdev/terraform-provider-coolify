@@ -66,8 +66,12 @@ func (m ServiceModel) Schema(ctx context.Context) schema.Schema {
 				Description: "Name of the environment.",
 			},
 			"environment_uuid": schema.StringAttribute{
-				Optional:    true, // todo: should change this to required and optional environment name
+				Optional:    true,
+				Computed:    true,
 				Description: "UUID of the environment. Will replace environment_name in future.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"instant_deploy": schema.BoolAttribute{
 				Optional:    true,

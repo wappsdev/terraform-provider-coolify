@@ -35,6 +35,26 @@ func TestServiceResourceSchema_descriptionHasPlanModifier(t *testing.T) {
 	}
 }
 
+func TestServiceResourceSchema_environmentUuidComputedWithModifier(t *testing.T) {
+	ctx := context.Background()
+	rs := service.NewServiceResource()
+
+	req := tfresource.SchemaRequest{}
+	resp := &tfresource.SchemaResponse{}
+	rs.Schema(ctx, req, resp)
+
+	attr, ok := resp.Schema.Attributes["environment_uuid"].(schema.StringAttribute)
+	if !ok {
+		t.Fatal("environment_uuid attribute missing or wrong type")
+	}
+	if !attr.Computed {
+		t.Error("environment_uuid should be Computed (Coolify Read returns it)")
+	}
+	if len(attr.PlanModifiers) == 0 {
+		t.Error("environment_uuid should have UseStateForUnknown PlanModifier")
+	}
+}
+
 func TestServiceResourceSchema_destinationUuidNoStaticDefault(t *testing.T) {
 	ctx := context.Background()
 	rs := service.NewServiceResource()
