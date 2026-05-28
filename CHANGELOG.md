@@ -4,6 +4,27 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.2 (2026-05-29)
+
+### Fixed
+- **`coolify_application` Update rejects `github_app_uuid`.** Coolify v4 returns
+  422 `{"github_app_uuid":["This field is not allowed."]}` on update — the GitHub
+  App association is create-only (same class as project/server/environment/
+  destination, already omitted). `ToAPIUpdate` still included it, so importing an
+  app with `github_app_uuid` set 422'd on the first apply. Removed it from the
+  update payload. Surfaced during the vaulter Spec 3 import.
+- **`useStateForUnknownUnlessNull` left omitted Optional+Computed fields Unknown
+  on update.** When an attribute was absent from config (ConfigValue null) and the
+  framework marked PlanValue Unknown (the common case on update), the modifier's
+  early `if !PlanValue.IsNull() { return }` skipped pinning to prior state →
+  the value stayed Unknown after apply → `Provider returned invalid result object
+  after apply`. This only triggered when *another* field forced an update (e.g.
+  `source_type` set in config while read returns null) and `custom_labels` was
+  omitted. Fixed all three variants (String/Int64/Bool) to pin prior state on
+  update and only mark Unknown on create. Apps that set these fields (lab/vibe-pro)
+  are unaffected — they return early at the config-set guard. Surfaced during the
+  vaulter Spec 3 import.
+
 ## v1.2.1 (2026-05-29)
 
 ### Fixed
