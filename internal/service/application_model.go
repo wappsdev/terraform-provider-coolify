@@ -162,6 +162,9 @@ func (m ApplicationModel) Schema(ctx context.Context) schema.Schema {
 				Optional:    true,
 				Computed:    true,
 				Description: "Description of the application.",
+				PlanModifiers: []planmodifier.String{
+					UseStateForUnknownUnlessNullString(),
+				},
 			},
 			"domains": schema.StringAttribute{
 				Optional:    true,

@@ -4,6 +4,16 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.1.5 (2026-05-28)
+
+### Fixed
+- **`description` perpetual drift.** Field was `Optional + Computed` without a
+  PlanModifier, so when HCL leaves it null but Coolify GET returns a value,
+  every plan computes `description = (known after apply)` and shows a
+  spurious update. Added `UseStateForUnknownUnlessNullString` modifier
+  (same pattern used by `custom_labels`, `git_commit_sha`, etc.) so the
+  state value is preserved when HCL is null.
+
 ## v1.1.4 (2026-05-28)
 
 ### Fixed
