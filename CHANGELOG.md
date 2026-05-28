@@ -4,6 +4,18 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.1.4 (2026-05-28)
+
+### Fixed
+- **`semanticEqual` now filters Coolify's `redirect-to-https` middleware line.**
+  v1.1.0 only filtered `tls.certresolver=letsencrypt`. Coolify v4 also injects
+  `traefik.http.routers.<name>.middlewares=redirect-to-https` on the HTTP
+  router of any HTTPS-enabled app. Without filtering, Read refresh sees
+  state and Coolify diverge by this line, plan modifier fails to suppress
+  the diff, and `tofu plan` shows a perpetual update for apps that haven't
+  changed. Adding this rule to `filterCertResolver` makes the comparison
+  ignore the auto-injection.
+
 ## v1.1.3 (2026-05-28)
 
 ### Fixed

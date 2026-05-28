@@ -154,6 +154,42 @@ func TestFilterCertResolver_caseInsensitiveKeyExactValue(t *testing.T) {
 	}
 }
 
+func TestFilterCertResolver_dropsRedirectToHttpsMiddleware(t *testing.T) {
+	in := []string{
+		"k1=v1",
+		"traefik.http.routers.foo.middlewares=redirect-to-https",
+		"k2=v2",
+	}
+	got := filterCertResolver(in)
+	want := []string{"k1=v1", "k2=v2"}
+	if len(got) != 2 || got[0] != want[0] || got[1] != want[1] {
+		t.Errorf("filterCertResolver = %v, want %v", got, want)
+	}
+}
+
+func TestFilterCertResolver_preservesCustomMiddlewares(t *testing.T) {
+	in := []string{
+		"traefik.http.routers.foo.middlewares=gzip",
+		"traefik.http.routers.foo.middlewares=my-custom",
+	}
+	got := filterCertResolver(in)
+	if len(got) != 2 {
+		t.Errorf("filterCertResolver dropped custom middlewares: %v, want %v", got, in)
+	}
+}
+
+func TestNormalize_stateWithLEAndRedirectEqualsConfigClean(t *testing.T) {
+	state := "k1=v1\n" +
+		"traefik.http.routers.foo.tls.certresolver=letsencrypt\n" +
+		"traefik.http.routers.foo.middlewares=redirect-to-https"
+	config := "k1=v1"
+	ns := normalize(state)
+	nc := normalize(config)
+	if len(ns) != len(nc) || (len(ns) > 0 && ns[0] != nc[0]) {
+		t.Errorf("normalize(state)=%v vs normalize(config)=%v — should be equal", ns, nc)
+	}
+}
+
 func TestNormalize_stateWithLEEqualsConfigClean(t *testing.T) {
 	state := "k1=v1\ntraefik.http.routers.foo.tls.certresolver=letsencrypt"
 	config := "k1=v1"

@@ -20,13 +20,25 @@ var leCertResolverPattern = regexp.MustCompile(
 		`\s*=\s*letsencrypt\s*$`,
 )
 
-// filterCertResolver drops any lines matching Coolify's auto-injected
-// letsencrypt cert resolver pattern. Other lines (including custom
-// certresolver values) are preserved.
+// redirectToHttpsMiddlewarePattern matches Coolify's auto-injected
+// `middlewares=redirect-to-https` line on the HTTP entry of HTTPS-enabled
+// apps. Coolify pairs this with a `middlewares.redirect-to-https.redirectscheme.scheme=https`
+// line which is also auto-injected and not user-controlled.
+var redirectToHttpsMiddlewarePattern = regexp.MustCompile(
+	`(?i)^traefik\.http\.routers\.[a-z0-9-]+\.middlewares` +
+		`\s*=\s*redirect-to-https\s*$`,
+)
+
+// filterCertResolver drops Coolify's auto-injected normalization lines
+// (LetsEncrypt certresolver, redirect-to-https middleware). Custom values
+// are preserved.
 func filterCertResolver(lines []string) []string {
 	out := make([]string, 0, len(lines))
 	for _, ln := range lines {
 		if leCertResolverPattern.MatchString(ln) && hasExactLetsencryptValue(ln) {
+			continue
+		}
+		if redirectToHttpsMiddlewarePattern.MatchString(ln) {
 			continue
 		}
 		out = append(out, ln)
