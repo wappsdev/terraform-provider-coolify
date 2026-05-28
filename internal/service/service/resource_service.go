@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -190,21 +189,12 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 func (r *ServiceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	ids := strings.Split(req.ID, "/")
-	if len(ids) != 4 {
-		resp.Diagnostics.AddError(
-			"Invalid import ID",
-			"Import ID should be in the format: <server_uuid>/<project_uuid>/<environment_name>/<service_uuid>",
-		)
-		return
-	}
-
-	serverUuid, projectUuid, environmentName, uuid := ids[0], ids[1], ids[2], ids[3]
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("server_uuid"), serverUuid)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_uuid"), projectUuid)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("environment_name"), environmentName)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("uuid"), uuid)...)
+	// Single-UUID import — consistent with coolify_application.
+	// The user supplies the service UUID. project_uuid, server_uuid,
+	// environment_name, etc. are populated by the user's HCL config
+	// (they are required HCL fields anyway and Coolify Read does not
+	// reliably return them as UUIDs).
+	resource.ImportStatePassthroughID(ctx, path.Root("uuid"), req, resp)
 }
 
 // ValidateCreatePlan checks that the create-time HCL meets Coolify's

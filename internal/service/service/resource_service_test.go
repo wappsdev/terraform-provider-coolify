@@ -19,6 +19,13 @@ import (
 	service "terraform-provider-coolify/internal/service/service"
 )
 
+func TestServiceResource_implementsImportState(t *testing.T) {
+	rs := service.NewServiceResource()
+	if _, ok := rs.(tfresource.ResourceWithImportState); !ok {
+		t.Error("ServiceResource must implement ResourceWithImportState")
+	}
+}
+
 func TestServiceValidateCreatePlan_okEnvNameOnly(t *testing.T) {
 	plan := service.ServiceModel{
 		EnvironmentName: types.StringValue("production"),
