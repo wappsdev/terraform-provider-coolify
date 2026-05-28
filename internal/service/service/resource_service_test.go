@@ -35,6 +35,26 @@ func TestServiceResourceSchema_descriptionHasPlanModifier(t *testing.T) {
 	}
 }
 
+func TestServiceResourceSchema_hasConnectToDockerNetwork(t *testing.T) {
+	ctx := context.Background()
+	rs := service.NewServiceResource()
+
+	req := tfresource.SchemaRequest{}
+	resp := &tfresource.SchemaResponse{}
+	rs.Schema(ctx, req, resp)
+
+	attr, ok := resp.Schema.Attributes["connect_to_docker_network"].(schema.BoolAttribute)
+	if !ok {
+		t.Fatal("connect_to_docker_network attribute missing or wrong type")
+	}
+	if !attr.Optional {
+		t.Error("connect_to_docker_network should be Optional")
+	}
+	if !attr.Computed {
+		t.Error("connect_to_docker_network should be Computed")
+	}
+}
+
 func TestServiceResourceSchema_environmentUuidComputedWithModifier(t *testing.T) {
 	ctx := context.Background()
 	rs := service.NewServiceResource()

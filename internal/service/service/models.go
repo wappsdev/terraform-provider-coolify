@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -25,6 +26,7 @@ type ServiceModel struct {
 	ProjectUuid            types.String `tfsdk:"project_uuid"`
 	ServerUuid             types.String `tfsdk:"server_uuid"`
 	InstantDeploy          types.Bool   `tfsdk:"instant_deploy"`
+	ConnectToDockerNetwork types.Bool   `tfsdk:"connect_to_docker_network"`
 	Compose                types.String `tfsdk:"compose"`
 }
 
@@ -79,6 +81,14 @@ func (m ServiceModel) Schema(ctx context.Context) schema.Schema {
 				Description: "Instant deploy the service.",
 				Default:     booldefault.StaticBool(false),
 			},
+			"connect_to_docker_network": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Connect the service to the predefined Coolify Docker network.",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"project_uuid": schema.StringAttribute{
 				Required:    true,
 				Description: "UUID of the project.",
@@ -98,16 +108,17 @@ func (m ServiceModel) Schema(ctx context.Context) schema.Schema {
 
 func (m ServiceModel) FromAPI(service *api.Service, state ServiceModel) ServiceModel {
 	return ServiceModel{
-		Uuid:            flatten.String(service.Uuid),
-		Name:            flatten.String(service.Name),
-		Description:     flatten.String(service.Description),
-		ServerUuid:      state.ServerUuid, // Values not returned by API, so use the plan value
-		ProjectUuid:     state.ProjectUuid,
-		EnvironmentName: state.EnvironmentName,
-		EnvironmentUuid: state.EnvironmentUuid,
-		DestinationUuid: state.DestinationUuid,
-		InstantDeploy:   state.InstantDeploy,
-		Compose:         state.Compose,
+		Uuid:                   flatten.String(service.Uuid),
+		Name:                   flatten.String(service.Name),
+		Description:            flatten.String(service.Description),
+		ServerUuid:             state.ServerUuid, // Values not returned by API, so use the plan value
+		ProjectUuid:            state.ProjectUuid,
+		EnvironmentName:        state.EnvironmentName,
+		EnvironmentUuid:        state.EnvironmentUuid,
+		DestinationUuid:        state.DestinationUuid,
+		InstantDeploy:          state.InstantDeploy,
+		ConnectToDockerNetwork: flatten.Bool(service.ConnectToDockerNetwork),
+		Compose:                state.Compose,
 	}
 }
 
@@ -126,14 +137,15 @@ func (m ServiceModel) ToAPICreate() api.CreateServiceJSONRequestBody {
 }
 func (m ServiceModel) ToAPIUpdate() api.UpdateServiceByUuidJSONRequestBody {
 	return api.UpdateServiceByUuidJSONRequestBody{
-		Name:             m.Name.ValueStringPointer(),
-		Description:      m.Description.ValueStringPointer(),
-		DestinationUuid:  expand.StringOrNil(m.DestinationUuid),
-		EnvironmentName:  m.EnvironmentName.ValueString(),
-		EnvironmentUuid:  m.EnvironmentUuid.ValueString(),
-		ProjectUuid:      m.ProjectUuid.ValueString(),
-		ServerUuid:       m.ServerUuid.ValueString(),
-		InstantDeploy:    m.InstantDeploy.ValueBoolPointer(),
-		DockerComposeRaw: *sutil.Base64EncodeAttr(m.Compose),
+		Name:                   m.Name.ValueStringPointer(),
+		Description:            m.Description.ValueStringPointer(),
+		DestinationUuid:        expand.StringOrNil(m.DestinationUuid),
+		EnvironmentName:        m.EnvironmentName.ValueString(),
+		EnvironmentUuid:        m.EnvironmentUuid.ValueString(),
+		ProjectUuid:            m.ProjectUuid.ValueString(),
+		ServerUuid:             m.ServerUuid.ValueString(),
+		ConnectToDockerNetwork: m.ConnectToDockerNetwork.ValueBoolPointer(),
+		InstantDeploy:          m.InstantDeploy.ValueBoolPointer(),
+		DockerComposeRaw:       *sutil.Base64EncodeAttr(m.Compose),
 	}
 }
