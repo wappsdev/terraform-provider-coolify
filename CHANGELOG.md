@@ -4,6 +4,19 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.1 (2026-05-29)
+
+### Fixed
+- **`coolify_service` Update rejects create-only identity fields.** Coolify v4
+  service update endpoint returns 422 `{"environment_name":["This field is not
+  allowed."],...}` for `environment_name`, `environment_uuid`, `project_uuid`,
+  `server_uuid` — they are create-only, identical behavior to
+  `coolify_application` (fixed in v1.0.1). The generated `UpdateServiceByUuidJSONBody`
+  struct had these as required `string` (no omitempty), so they always
+  serialized — even as empty string — and got rejected. Changed the four fields
+  to `*string` + `,omitempty` in `api_gen.go` and removed them from
+  `ToAPIUpdate`. Discovered during vibe-nats adoption smoke test.
+
 ## v1.2.0 (2026-05-29)
 
 ### Added

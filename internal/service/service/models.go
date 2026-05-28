@@ -136,14 +136,15 @@ func (m ServiceModel) ToAPICreate() api.CreateServiceJSONRequestBody {
 	}
 }
 func (m ServiceModel) ToAPIUpdate() api.UpdateServiceByUuidJSONRequestBody {
+	// NOTE: environment_name, environment_uuid, project_uuid, server_uuid are
+	// create-only on Coolify v4 — the service update endpoint rejects them with
+	// 422 "This field is not allowed" (same behavior as coolify_application,
+	// see provider v1.0.1). They remain in the Tofu schema for identity but are
+	// omitted from the update payload (left as nil pointers).
 	return api.UpdateServiceByUuidJSONRequestBody{
 		Name:                   m.Name.ValueStringPointer(),
 		Description:            m.Description.ValueStringPointer(),
 		DestinationUuid:        expand.StringOrNil(m.DestinationUuid),
-		EnvironmentName:        m.EnvironmentName.ValueString(),
-		EnvironmentUuid:        m.EnvironmentUuid.ValueString(),
-		ProjectUuid:            m.ProjectUuid.ValueString(),
-		ServerUuid:             m.ServerUuid.ValueString(),
 		ConnectToDockerNetwork: m.ConnectToDockerNetwork.ValueBoolPointer(),
 		InstantDeploy:          m.InstantDeploy.ValueBoolPointer(),
 		DockerComposeRaw:       *sutil.Base64EncodeAttr(m.Compose),
