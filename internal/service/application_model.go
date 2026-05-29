@@ -96,6 +96,7 @@ type ApplicationModel struct {
 	LimitsCpuset                    types.String `tfsdk:"limits_cpuset"`
 	LimitsCpuShares                 types.Int64  `tfsdk:"limits_cpu_shares"`
 	CustomLabels                    types.String `tfsdk:"custom_labels"`
+	CustomNetworkAliases            types.String `tfsdk:"custom_network_aliases"`
 	CustomDockerRunOptions          types.String `tfsdk:"custom_docker_run_options"`
 	PostDeploymentCommand           types.String `tfsdk:"post_deployment_command"`
 	PostDeploymentCommandContainer  types.String `tfsdk:"post_deployment_command_container"`
@@ -372,6 +373,14 @@ func (m ApplicationModel) Schema(ctx context.Context) schema.Schema {
 					CoolifyLabelsSemanticEqual(),
 				},
 			},
+			"custom_network_aliases": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Docker network alias(es) for the container (comma-separated). Sent on update (not auto-normalized by Coolify, unlike custom_labels).",
+				PlanModifiers: []planmodifier.String{
+					UseStateForUnknownUnlessNullString(),
+				},
+			},
 			"custom_docker_run_options":         schema.StringAttribute{Optional: true, Description: "Custom docker run options."},
 			"post_deployment_command":           schema.StringAttribute{Optional: true, Description: "Post deployment command."},
 			"post_deployment_command_container": schema.StringAttribute{Optional: true, Description: "Post deployment command container."},
@@ -511,6 +520,7 @@ func (m ApplicationModel) FromAPI(app *api.Application, state ApplicationModel) 
 		LimitsCpuset:                    flatten.String(app.LimitsCpuset),
 		LimitsCpuShares:                 flatten.Int64(app.LimitsCpuShares),
 		CustomLabels:                    preserveCustomLabels(state.CustomLabels, flatten.String(app.CustomLabels)),
+		CustomNetworkAliases:            flatten.String(app.CustomNetworkAliases),
 		CustomDockerRunOptions:          flatten.String(app.CustomDockerRunOptions),
 		PostDeploymentCommand:           flatten.String(app.PostDeploymentCommand),
 		PostDeploymentCommandContainer:  flatten.String(app.PostDeploymentCommandContainer),
@@ -621,6 +631,7 @@ func (m ApplicationModel) toCreatePublicApplication() api.CreatePublicApplicatio
 		LimitsCpuset:                    expand.String(m.LimitsCpuset),
 		LimitsCpuShares:                 expand.Int64(m.LimitsCpuShares),
 		CustomLabels:                    expand.String(m.CustomLabels),
+		CustomNetworkAliases:            expand.StringOrNil(m.CustomNetworkAliases),
 		CustomDockerRunOptions:          expand.String(m.CustomDockerRunOptions),
 		PostDeploymentCommand:           expand.String(m.PostDeploymentCommand),
 		PostDeploymentCommandContainer:  expand.String(m.PostDeploymentCommandContainer),
@@ -701,6 +712,7 @@ func (m ApplicationModel) toCreatePrivateGithubAppApplication() api.CreatePrivat
 		LimitsCpuset:                    expand.String(m.LimitsCpuset),
 		LimitsCpuShares:                 expand.Int64(m.LimitsCpuShares),
 		CustomLabels:                    expand.String(m.CustomLabels),
+		CustomNetworkAliases:            expand.StringOrNil(m.CustomNetworkAliases),
 		CustomDockerRunOptions:          expand.String(m.CustomDockerRunOptions),
 		PostDeploymentCommand:           expand.String(m.PostDeploymentCommand),
 		PostDeploymentCommandContainer:  expand.String(m.PostDeploymentCommandContainer),
@@ -781,6 +793,7 @@ func (m ApplicationModel) toCreatePrivateDeployKeyApplication() api.CreatePrivat
 		LimitsCpuset:                    expand.String(m.LimitsCpuset),
 		LimitsCpuShares:                 expand.Int64(m.LimitsCpuShares),
 		CustomLabels:                    expand.String(m.CustomLabels),
+		CustomNetworkAliases:            expand.StringOrNil(m.CustomNetworkAliases),
 		CustomDockerRunOptions:          expand.String(m.CustomDockerRunOptions),
 		PostDeploymentCommand:           expand.String(m.PostDeploymentCommand),
 		PostDeploymentCommandContainer:  expand.String(m.PostDeploymentCommandContainer),
@@ -851,6 +864,7 @@ func (m ApplicationModel) toCreateDockerfileApplication() api.CreateDockerfileAp
 		LimitsCpuset:                   expand.String(m.LimitsCpuset),
 		LimitsCpuShares:                expand.Int64(m.LimitsCpuShares),
 		CustomLabels:                   expand.String(m.CustomLabels),
+		CustomNetworkAliases:           expand.StringOrNil(m.CustomNetworkAliases),
 		CustomDockerRunOptions:         expand.String(m.CustomDockerRunOptions),
 		PostDeploymentCommand:          expand.String(m.PostDeploymentCommand),
 		PostDeploymentCommandContainer: expand.String(m.PostDeploymentCommandContainer),
@@ -903,6 +917,7 @@ func (m ApplicationModel) toCreateDockerimageApplication() api.CreateDockerimage
 		LimitsCpuset:                   expand.String(m.LimitsCpuset),
 		LimitsCpuShares:                expand.Int64(m.LimitsCpuShares),
 		CustomLabels:                   expand.String(m.CustomLabels),
+		CustomNetworkAliases:           expand.StringOrNil(m.CustomNetworkAliases),
 		CustomDockerRunOptions:         expand.String(m.CustomDockerRunOptions),
 		PostDeploymentCommand:          expand.String(m.PostDeploymentCommand),
 		PostDeploymentCommandContainer: expand.String(m.PostDeploymentCommandContainer),
@@ -1007,6 +1022,8 @@ func (m ApplicationModel) ToAPIUpdate() api.UpdateApplicationByUuidJSONRequestBo
 		LimitsCpuset:            expand.StringOrNil(m.LimitsCpuset),
 		LimitsCpuShares:         expand.Int64(m.LimitsCpuShares),
 		// CustomLabels omitted (see NOTE above): Coolify normalizes on update.
+		// CustomNetworkAliases IS sent on update (not auto-normalized by Coolify).
+		CustomNetworkAliases:           expand.StringOrNil(m.CustomNetworkAliases),
 		CustomDockerRunOptions:         expand.StringOrNil(m.CustomDockerRunOptions),
 		PostDeploymentCommand:          expand.StringOrNil(m.PostDeploymentCommand),
 		PostDeploymentCommandContainer: expand.StringOrNil(m.PostDeploymentCommandContainer),
