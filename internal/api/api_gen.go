@@ -938,7 +938,8 @@ type CreateDockerfileApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels *string `json:"custom_labels,omitempty"`
+	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
 	Description *string `json:"description,omitempty"`
@@ -1091,7 +1092,8 @@ type CreateDockerimageApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels *string `json:"custom_labels,omitempty"`
+	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
 	Description *string `json:"description,omitempty"`
@@ -1247,7 +1249,8 @@ type CreatePrivateDeployKeyApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels *string `json:"custom_labels,omitempty"`
+	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
 	Description *string `json:"description,omitempty"`
@@ -1457,7 +1460,8 @@ type CreatePrivateGithubAppApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels *string `json:"custom_labels,omitempty"`
+	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
 	Description *string `json:"description,omitempty"`
@@ -1667,7 +1671,8 @@ type CreatePublicApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels *string `json:"custom_labels,omitempty"`
+	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
 	Description *string `json:"description,omitempty"`
@@ -1889,7 +1894,8 @@ type UpdateApplicationByUuidJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels *string `json:"custom_labels,omitempty"`
+	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
 	Description *string `json:"description,omitempty"`

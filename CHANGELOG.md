@@ -4,6 +4,17 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.3 (2026-05-29)
+
+### Added
+- **`coolify_application.custom_network_aliases`** (Optional+Computed string). Docker
+  network alias(es) for the container — the field Coolify already returns on GET but
+  the provider didn't model (forcing a `null_resource` + raw API PATCH downstream,
+  e.g. vaulter's `vaulter-<svc>` aliases). Wired through create (all 5 source types),
+  update, and read. **Sent on update** (unlike `custom_labels`, Coolify does not
+  auto-normalize it). `UseStateForUnknownUnlessNull` modifier (preserve on update,
+  Unknown on create). Lets vaulter fold its 19 alias null_resources into the resource.
+
 ## v1.2.2 (2026-05-29)
 
 ### Fixed
