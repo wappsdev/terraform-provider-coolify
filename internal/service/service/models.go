@@ -114,12 +114,23 @@ func (m ServiceModel) FromAPI(service *api.Service, state ServiceModel) ServiceM
 		ServerUuid:             state.ServerUuid, // Values not returned by API, so use the plan value
 		ProjectUuid:            state.ProjectUuid,
 		EnvironmentName:        state.EnvironmentName,
-		EnvironmentUuid:        state.EnvironmentUuid,
-		DestinationUuid:        state.DestinationUuid,
+		EnvironmentUuid:        knownOrNull(state.EnvironmentUuid),
+		DestinationUuid:        knownOrNull(state.DestinationUuid),
 		InstantDeploy:          state.InstantDeploy,
 		ConnectToDockerNetwork: flatten.Bool(service.ConnectToDockerNetwork),
 		Compose:                state.Compose,
 	}
+}
+
+// knownOrNull resolves an Unknown plan value to null. Used for Optional+Computed
+// attributes the Coolify API never returns (environment_uuid, destination_uuid):
+// left unset in config they are Unknown at create, and Terraform rejects Unknown
+// values in the post-apply state ("Provider returned invalid result object").
+func knownOrNull(v types.String) types.String {
+	if v.IsUnknown() {
+		return types.StringNull()
+	}
+	return v
 }
 
 func (m ServiceModel) ToAPICreate() api.CreateServiceJSONRequestBody {

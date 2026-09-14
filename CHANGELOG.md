@@ -4,6 +4,15 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.4 (2026-09-14)
+
+### Fixed
+- **`coolify_service` create no longer taints the resource** with "Provider returned
+  invalid result object after apply". `environment_uuid` and `destination_uuid` are
+  Optional+Computed but Coolify's GET never returns them; left unset in config they were
+  Unknown at create and copied verbatim into the post-apply state. They now resolve to
+  null when Unknown (configured values are kept). Hit creating the lab TeamSpeak service.
+
 ## v1.2.3 (2026-05-29)
 
 ### Added
