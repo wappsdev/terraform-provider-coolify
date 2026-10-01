@@ -1822,7 +1822,7 @@ paths:
             security:
                 - bearerAuth: []
     '/applications/{uuid}/start':
-        get:
+        post:
             tags:
                 - Applications
             summary: Start
@@ -1867,7 +1867,7 @@ paths:
             security:
                 - bearerAuth: []
     '/applications/{uuid}/stop':
-        get:
+        post:
             tags:
                 - Applications
             summary: Stop
@@ -1899,7 +1899,7 @@ paths:
             security:
                 - bearerAuth: []
     '/applications/{uuid}/restart':
-        get:
+        post:
             tags:
                 - Applications
             summary: Restart
@@ -2961,7 +2961,7 @@ paths:
             security:
                 - bearerAuth: []
     '/databases/{uuid}/start':
-        get:
+        post:
             tags:
                 - Databases
             summary: Start
@@ -2993,7 +2993,7 @@ paths:
             security:
                 - bearerAuth: []
     '/databases/{uuid}/stop':
-        get:
+        post:
             tags:
                 - Databases
             summary: Stop
@@ -3025,7 +3025,7 @@ paths:
             security:
                 - bearerAuth: []
     '/databases/{uuid}/restart':
-        get:
+        post:
             tags:
                 - Databases
             summary: Restart
@@ -4492,7 +4492,7 @@ paths:
             security:
                 - bearerAuth: []
     '/services/{uuid}/start':
-        get:
+        post:
             tags:
                 - Services
             summary: Start
@@ -4524,7 +4524,7 @@ paths:
             security:
                 - bearerAuth: []
     '/services/{uuid}/stop':
-        get:
+        post:
             tags:
                 - Services
             summary: Stop
@@ -4556,7 +4556,7 @@ paths:
             security:
                 - bearerAuth: []
     '/services/{uuid}/restart':
-        get:
+        post:
             tags:
                 - Services
             summary: Restart

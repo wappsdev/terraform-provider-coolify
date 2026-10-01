@@ -36,6 +36,21 @@ func TestServiceFromAPI_resolvesUnknownComputedToNull(t *testing.T) {
 	}
 }
 
+// Coolify's PATCH /services/{uuid} rejects destination_uuid with 422
+// "This field is not allowed" — it is create-only, like server/project/env.
+func TestServiceToAPIUpdate_omitsDestinationUuid(t *testing.T) {
+	m := service.ServiceModel{
+		DestinationUuid: types.StringValue("dest"),
+		Compose:         types.StringValue("services: {}"),
+	}
+
+	got := m.ToAPIUpdate()
+
+	if got.DestinationUuid != nil {
+		t.Errorf("destination_uuid must not be sent on update, got %q", *got.DestinationUuid)
+	}
+}
+
 func TestServiceFromAPI_keepsConfiguredUuids(t *testing.T) {
 	uuid := "svc123"
 	plan := service.ServiceModel{

@@ -4,6 +4,20 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.5 (2026-10-01)
+
+### Fixed
+- **Start/stop/restart calls use POST.** Coolify v4.3.23 moved
+  `/{applications,databases,services}/{uuid}/{start,stop,restart}` from GET to POST and
+  answers GET with 405 ("This endpoint has changed to a POST request."). This broke
+  `coolify_service` updates with `instant_deploy = true` and the database resources'
+  post-update restart. Only these nine request builders changed in `api_gen.go`; the
+  vendored `tools/openapi.yml` was updated to match.
+- **`coolify_service` update no longer sends `destination_uuid`.** Coolify's
+  `PATCH /services/{uuid}` rejects it with 422 "This field is not allowed" (create-only,
+  like server/project/environment). Any in-place update of a service that set
+  `destination_uuid` failed. Hit bumping the lab TeamSpeak image.
+
 ## v1.2.4 (2026-09-14)
 
 ### Fixed
