@@ -948,11 +948,19 @@ func (m ApplicationModel) toCreateDockercomposeApplication() api.CreateDockercom
 }
 
 func (m ApplicationModel) ToAPIUpdate() api.UpdateApplicationByUuidJSONRequestBody {
+	// Coolify's update accepts only the build packs of a git app. A Docker Image app reads back
+	// build_pack "dockerimage", which the update rejects (422 "The selected build pack is invalid"), and it
+	// cannot change anyway: send build_pack only when it is one the update accepts.
 	buildPack := expand.String(m.BuildPack)
 	var buildPackEnum *api.UpdateApplicationByUuidJSONBodyBuildPack
 	if buildPack != nil {
-		buildPackEnumVal := api.UpdateApplicationByUuidJSONBodyBuildPack(*buildPack)
-		buildPackEnum = &buildPackEnumVal
+		switch v := api.UpdateApplicationByUuidJSONBodyBuildPack(*buildPack); v {
+		case api.UpdateApplicationByUuidJSONBodyBuildPackDockercompose,
+			api.UpdateApplicationByUuidJSONBodyBuildPackDockerfile,
+			api.UpdateApplicationByUuidJSONBodyBuildPackNixpacks,
+			api.UpdateApplicationByUuidJSONBodyBuildPackStatic:
+			buildPackEnum = &v
+		}
 	}
 	redirect := expand.StringOrNil(m.Redirect)
 	redirectEnum := validateRedirect[api.UpdateApplicationByUuidJSONBodyRedirect](redirect)

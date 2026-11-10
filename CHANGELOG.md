@@ -4,6 +4,14 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.6 (2026-11-10)
+
+### Fixed
+- **Docker Image apps can be updated.** `coolify_application` sent the read-back `build_pack` in every update, and a
+  Docker Image app reads back `"dockerimage"`, which Coolify's `PATCH /applications/{uuid}` rejects with 422 "The
+  selected build pack is invalid" (it accepts only `nixpacks`, `static`, `dockerfile`, `dockercompose`). The update
+  body now carries `build_pack` only when it is one of those. Hit adopting royco's GHCR image apps in the lab project.
+
 ## v1.2.5 (2026-10-01)
 
 ### Fixed
