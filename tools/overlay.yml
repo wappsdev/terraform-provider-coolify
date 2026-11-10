@@ -214,3 +214,30 @@ actions:
                 internal_db_url:
                   type: string
               type: object
+
+  - target: $.paths['/applications/public','/applications/private-github-app','/applications/private-deploy-key','/applications/dockerfile','/applications/dockerimage'].post.requestBody.content['application/json'].schema.properties
+    description: >-
+      Add custom_network_aliases to the application create bodies. Coolify accepts and returns it, but the upstream
+      spec omits it from the request bodies (it was hand-edited into api_gen.go before, which `make generate` undid).
+    update:
+      custom_network_aliases:
+        type: string
+        description: "Network aliases for the container (comma-separated)."
+  - target: $.paths['/applications/{uuid}'].patch.requestBody.content['application/json'].schema.properties
+    description: Add custom_network_aliases to the application update body (see the create bodies above).
+    update:
+      custom_network_aliases:
+        type: string
+        description: "Network aliases for the container (comma-separated)."
+
+  - target: $.paths['/services/{uuid}'].patch.requestBody.content['application/json'].schema.required
+    description: >-
+      Coolify rejects server_uuid, project_uuid, environment_name and environment_uuid on a service update with 422
+      "This field is not allowed" (they are create-only), so they must be optional; only docker_compose_raw stays
+      required.
+    remove: true
+  - target: $.paths['/services/{uuid}'].patch.requestBody.content['application/json'].schema
+    description: Re-add the required list without the create-only fields.
+    update:
+      required:
+        - docker_compose_raw

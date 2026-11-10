@@ -938,7 +938,9 @@ type CreateDockerfileApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomLabels *string `json:"custom_labels,omitempty"`
+
+	// CustomNetworkAliases Network aliases for the container (comma-separated).
 	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
@@ -1092,7 +1094,9 @@ type CreateDockerimageApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomLabels *string `json:"custom_labels,omitempty"`
+
+	// CustomNetworkAliases Network aliases for the container (comma-separated).
 	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
@@ -1249,7 +1253,9 @@ type CreatePrivateDeployKeyApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomLabels *string `json:"custom_labels,omitempty"`
+
+	// CustomNetworkAliases Network aliases for the container (comma-separated).
 	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
@@ -1460,7 +1466,9 @@ type CreatePrivateGithubAppApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomLabels *string `json:"custom_labels,omitempty"`
+
+	// CustomNetworkAliases Network aliases for the container (comma-separated).
 	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
@@ -1671,7 +1679,9 @@ type CreatePublicApplicationJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomLabels *string `json:"custom_labels,omitempty"`
+
+	// CustomNetworkAliases Network aliases for the container (comma-separated).
 	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
@@ -1894,7 +1904,9 @@ type UpdateApplicationByUuidJSONBody struct {
 	CustomDockerRunOptions *string `json:"custom_docker_run_options,omitempty"`
 
 	// CustomLabels Custom labels.
-	CustomLabels         *string `json:"custom_labels,omitempty"`
+	CustomLabels *string `json:"custom_labels,omitempty"`
+
+	// CustomNetworkAliases Network aliases for the container (comma-separated).
 	CustomNetworkAliases *string `json:"custom_network_aliases,omitempty"`
 
 	// Description The application description.
@@ -3015,12 +3027,6 @@ type UpdateServiceByUuidJSONBody struct {
 	DockerComposeRaw string `json:"docker_compose_raw"`
 
 	// EnvironmentName The environment name.
-	//
-	// NOTE (wappsdev fork): made optional pointer + omitempty. Coolify v4
-	// rejects environment_name/environment_uuid/project_uuid/server_uuid on
-	// service update with 422 "This field is not allowed" — they are
-	// create-only, same as coolify_application (see v1.0.1). Omitting via nil
-	// pointer keeps the field out of the JSON payload entirely.
 	EnvironmentName *string `json:"environment_name,omitempty"`
 
 	// EnvironmentUuid The environment UUID.

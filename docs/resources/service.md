@@ -46,6 +46,7 @@ EOF
 
 ### Optional
 
+- `connect_to_docker_network` (Boolean) Connect the service to the predefined Coolify Docker network.
 - `description` (String) Description of the service.
 - `destination_uuid` (String) UUID of the destination if the server has multiple destinations.
 - `environment_uuid` (String) UUID of the environment. Will replace environment_name in future.

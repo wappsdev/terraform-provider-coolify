@@ -8,7 +8,7 @@ resource "coolify_application" "dockerimage_example" {
   environment_name = "production"
 
   docker_registry_image_name = "nginx"
-  docker_registry_image_tag   = "alpine"
+  docker_registry_image_tag  = "alpine"
   ports_exposes              = "80"
 
   name        = "Docker Image Example"

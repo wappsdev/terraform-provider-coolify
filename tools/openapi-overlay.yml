@@ -257,6 +257,9 @@ paths:
                                     type: string
                                     nullable: true
                                     description: 'Password for HTTP Basic Authentication'
+                                custom_network_aliases:
+                                    type: string
+                                    description: "Network aliases for the container (comma-separated)."
                             type: object
             responses:
                 '201':
@@ -506,6 +509,9 @@ paths:
                                     type: string
                                     nullable: true
                                     description: 'Password for HTTP Basic Authentication'
+                                custom_network_aliases:
+                                    type: string
+                                    description: "Network aliases for the container (comma-separated)."
                             type: object
             responses:
                 '201':
@@ -755,6 +761,9 @@ paths:
                                     type: string
                                     nullable: true
                                     description: 'Password for HTTP Basic Authentication'
+                                custom_network_aliases:
+                                    type: string
+                                    description: "Network aliases for the container (comma-separated)."
                             type: object
             responses:
                 '201':
@@ -951,6 +960,9 @@ paths:
                                     type: string
                                     nullable: true
                                     description: 'Password for HTTP Basic Authentication'
+                                custom_network_aliases:
+                                    type: string
+                                    description: "Network aliases for the container (comma-separated)."
                             type: object
             responses:
                 '201':
@@ -1138,6 +1150,9 @@ paths:
                                     type: string
                                     nullable: true
                                     description: 'Password for HTTP Basic Authentication'
+                                custom_network_aliases:
+                                    type: string
+                                    description: "Network aliases for the container (comma-separated)."
                             type: object
             responses:
                 '201':
@@ -1522,6 +1537,9 @@ paths:
                                     type: boolean
                                     nullable: true
                                     description: 'Use build server.'
+                                custom_network_aliases:
+                                    type: string
+                                    description: "Network aliases for the container (comma-separated)."
                             type: object
             responses:
                 '200':
@@ -4193,12 +4211,6 @@ paths:
                 content:
                     application/json:
                         schema:
-                            required:
-                                - server_uuid
-                                - project_uuid
-                                - environment_name
-                                - environment_uuid
-                                - docker_compose_raw
                             properties:
                                 name:
                                     type: string
@@ -4232,6 +4244,8 @@ paths:
                                     type: string
                                     description: 'The Docker Compose raw content.'
                             type: object
+                            required:
+                                - docker_compose_raw
             responses:
                 '200':
                     description: 'Service updated.'
