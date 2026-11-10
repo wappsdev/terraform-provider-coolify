@@ -4,6 +4,18 @@ All notable changes to this fork are documented here. This fork is based on
 `SierraJC/terraform-provider-coolify` with `coolify_application` resource added
 from PR #87 plus subsequent fixes.
 
+## v1.2.7 (2026-11-10)
+
+### Fixed
+- **No endless diff for omitted Optional+Computed fields that Coolify leaves null.** The plan modifier marked an
+  omitted field Unknown whenever its prior state was null, on updates too, so `custom_network_aliases` (null in
+  Coolify for every app) showed `+ (known after apply)` on every plan. It now keeps the prior state, null included,
+  when the resource exists; Unknown stays for creates only. Applies to all 19 fields that use the modifier.
+- **`git_repository` refreshes when the repository really changed.** `preserveGitRepository` kept the state value for
+  any difference, so a stale repository in state never refreshed (kreeva-web's app kept reading
+  `wappsdev/vaulter-web`). It now keeps the state value only when it names the same repository in another form (URL
+  vs `owner/repo`).
+
 ## v1.2.6 (2026-11-10)
 
 ### Fixed

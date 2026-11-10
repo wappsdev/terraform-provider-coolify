@@ -450,19 +450,39 @@ func preserveCustomLabels(stateVal types.String, apiVal types.String) types.Stri
 }
 
 func preserveGitRepository(stateVal types.String, apiVal types.String) types.String {
-	if stateVal.IsNull() || stateVal.IsUnknown() {
-		return apiVal
-	}
-	stateStr := stateVal.ValueString()
-	apiStr := apiVal.ValueString()
-	if stateStr != "" && apiStr != "" && stateStr != apiStr {
-		if (strings.HasPrefix(stateStr, "http://") || strings.HasPrefix(stateStr, "https://") || strings.HasPrefix(stateStr, "git@")) &&
-			!strings.Contains(apiStr, "://") && !strings.HasPrefix(apiStr, "git@") {
-			return stateVal
+	if stateVal.IsNull() || stateVal.IsUnknown() || apiVal.IsNull() || apiVal.IsUnknown() {
+		if stateVal.IsNull() || stateVal.IsUnknown() {
+			return apiVal
 		}
 		return stateVal
 	}
+	// Keep the state value only when it names the same repository in another form (a URL in state,
+	// "owner/repo" from Coolify); any other difference is a real change and the API wins.
+	if repoSlug(stateVal.ValueString()) == repoSlug(apiVal.ValueString()) {
+		return stateVal
+	}
 	return apiVal
+}
+
+// repoSlug reduces a repository reference to "owner/repo": it strips an https/http/ssh host prefix and a
+// trailing ".git" or "/".
+func repoSlug(s string) string {
+	s = strings.TrimSpace(s)
+	for _, p := range []string{"https://", "http://"} {
+		if strings.HasPrefix(s, p) {
+			s = strings.TrimPrefix(s, p)
+			if i := strings.Index(s, "/"); i >= 0 {
+				s = s[i+1:]
+			}
+		}
+	}
+	if strings.HasPrefix(s, "git@") {
+		if i := strings.Index(s, ":"); i >= 0 {
+			s = s[i+1:]
+		}
+	}
+	s = strings.TrimSuffix(strings.TrimSuffix(s, "/"), ".git")
+	return strings.ToLower(s)
 }
 
 func (m ApplicationModel) FromAPI(app *api.Application, state ApplicationModel) ApplicationModel {

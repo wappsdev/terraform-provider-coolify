@@ -5,8 +5,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+// priorState returns the resource-level prior state: null on create, a known object on update.
+func priorState(exists bool) tfsdk.State {
+	if !exists {
+		return tfsdk.State{Raw: tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, nil)}
+	}
+	return tfsdk.State{Raw: tftypes.NewValue(tftypes.Object{AttributeTypes: map[string]tftypes.Type{}}, map[string]tftypes.Value{})}
+}
 
 // Tests useStateForUnknownUnlessNull (String). The key regression: when the
 // attribute is omitted from config (ConfigValue null) on an UPDATE where the
@@ -19,6 +29,7 @@ func TestUseStateForUnknownUnlessNullString(t *testing.T) {
 		config      types.String
 		plan        types.String
 		state       types.String
+		exists      bool // the resource exists (update); false = create
 		wantPlan    types.String
 		wantChanged bool // whether the modifier overrides resp.PlanValue
 	}{
@@ -27,6 +38,7 @@ func TestUseStateForUnknownUnlessNullString(t *testing.T) {
 			config:      types.StringNull(),
 			plan:        types.StringUnknown(),
 			state:       types.StringValue("keep-me"),
+			exists:      true,
 			wantPlan:    types.StringValue("keep-me"),
 			wantChanged: true,
 		},
@@ -35,6 +47,7 @@ func TestUseStateForUnknownUnlessNullString(t *testing.T) {
 			config:      types.StringNull(),
 			plan:        types.StringNull(),
 			state:       types.StringValue("keep-me"),
+			exists:      true,
 			wantPlan:    types.StringValue("keep-me"),
 			wantChanged: true,
 		},
@@ -55,10 +68,22 @@ func TestUseStateForUnknownUnlessNullString(t *testing.T) {
 			wantChanged: true,
 		},
 		{
+			// Regression (10 Nov 2026): Coolify answers null for an unused field (custom_network_aliases), so the
+			// prior state is null on every update; marking it Unknown gave a diff on every plan that never closed.
+			name:        "config null, plan unknown, state null (UPDATE) → keep null",
+			config:      types.StringNull(),
+			plan:        types.StringUnknown(),
+			state:       types.StringNull(),
+			exists:      true,
+			wantPlan:    types.StringNull(),
+			wantChanged: true,
+		},
+		{
 			name:        "config set → no-op (respect config, leave plan untouched)",
 			config:      types.StringValue("user-set"),
 			plan:        types.StringValue("user-set"),
 			state:       types.StringValue("old"),
+			exists:      true,
 			wantPlan:    types.StringValue("user-set"),
 			wantChanged: false,
 		},
@@ -71,6 +96,7 @@ func TestUseStateForUnknownUnlessNullString(t *testing.T) {
 				ConfigValue: tt.config,
 				PlanValue:   tt.plan,
 				StateValue:  tt.state,
+				State:       priorState(tt.exists),
 			}
 			resp := &planmodifier.StringResponse{PlanValue: tt.plan}
 			m.PlanModifyString(context.Background(), req, resp)

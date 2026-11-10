@@ -10,11 +10,11 @@ import (
 type useStateForUnknownUnlessNull struct{}
 
 func (m useStateForUnknownUnlessNull) Description(ctx context.Context) string {
-	return "Handles Optional+Computed fields: marks as Unknown on create when null, preserves state on update"
+	return "Handles Optional+Computed fields: Unknown on create when omitted, prior state (null included) on update"
 }
 
 func (m useStateForUnknownUnlessNull) MarkdownDescription(ctx context.Context) string {
-	return "Handles Optional+Computed fields: marks as Unknown on create when null, preserves state on update"
+	return "Handles Optional+Computed fields: Unknown on create when omitted, prior state (null included) on update"
 }
 
 func (m useStateForUnknownUnlessNull) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
@@ -24,15 +24,16 @@ func (m useStateForUnknownUnlessNull) PlanModifyString(ctx context.Context, req 
 	}
 
 	// Config is null (attribute omitted):
-	//   - create (no prior state) → mark Unknown (Computed value resolves on apply)
-	//   - update (prior state known) → preserve the prior state value
+	//   - create (no prior resource state) → mark Unknown (Computed value resolves on apply)
+	//   - update (the resource exists) → preserve the prior state value, null included: Coolify answers null for
+	//     an unused field (e.g. custom_network_aliases), and an Unknown there gave a diff on every plan.
 	//
 	// We must pin to state even when the framework left PlanValue Unknown (the
 	// common case for Optional+Computed on update). Returning early on an Unknown
 	// plan value would leave it Unknown after apply → "Provider returned invalid
 	// result object after apply" (surfaced by the vaulter Spec 3 import, where an
 	// unrelated forced update left an omitted custom_labels Unknown).
-	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+	if req.State.Raw.IsNull() || req.StateValue.IsUnknown() {
 		resp.PlanValue = types.StringUnknown()
 		return
 	}
@@ -47,11 +48,11 @@ func UseStateForUnknownUnlessNullString() planmodifier.String {
 type useStateForUnknownUnlessNullInt64 struct{}
 
 func (m useStateForUnknownUnlessNullInt64) Description(ctx context.Context) string {
-	return "Handles Optional+Computed fields: marks as Unknown on create when null, preserves state on update"
+	return "Handles Optional+Computed fields: Unknown on create when omitted, prior state (null included) on update"
 }
 
 func (m useStateForUnknownUnlessNullInt64) MarkdownDescription(ctx context.Context) string {
-	return "Handles Optional+Computed fields: marks as Unknown on create when null, preserves state on update"
+	return "Handles Optional+Computed fields: Unknown on create when omitted, prior state (null included) on update"
 }
 
 func (m useStateForUnknownUnlessNullInt64) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
@@ -62,7 +63,7 @@ func (m useStateForUnknownUnlessNullInt64) PlanModifyInt64(ctx context.Context, 
 		return
 	}
 
-	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+	if req.State.Raw.IsNull() || req.StateValue.IsUnknown() {
 		resp.PlanValue = types.Int64Unknown()
 		return
 	}
@@ -77,11 +78,11 @@ func UseStateForUnknownUnlessNullInt64() planmodifier.Int64 {
 type useStateForUnknownUnlessNullBool struct{}
 
 func (m useStateForUnknownUnlessNullBool) Description(ctx context.Context) string {
-	return "Handles Optional+Computed fields: marks as Unknown on create when null, preserves state on update"
+	return "Handles Optional+Computed fields: Unknown on create when omitted, prior state (null included) on update"
 }
 
 func (m useStateForUnknownUnlessNullBool) MarkdownDescription(ctx context.Context) string {
-	return "Handles Optional+Computed fields: marks as Unknown on create when null, preserves state on update"
+	return "Handles Optional+Computed fields: Unknown on create when omitted, prior state (null included) on update"
 }
 
 func (m useStateForUnknownUnlessNullBool) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
@@ -92,7 +93,7 @@ func (m useStateForUnknownUnlessNullBool) PlanModifyBool(ctx context.Context, re
 		return
 	}
 
-	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+	if req.State.Raw.IsNull() || req.StateValue.IsUnknown() {
 		resp.PlanValue = types.BoolUnknown()
 		return
 	}
